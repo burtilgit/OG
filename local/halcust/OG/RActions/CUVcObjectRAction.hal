@@ -1,0 +1,137 @@
+global 
+updating procedure CheckAndCreateCUObject(var Record CUVc CUr)
+begin
+  record ObjVc Objr;
+  string 20 ObjCodeCu,ObjCodeVe,ObjCode;
+  record CrObjBlock CrObjr;
+  boolean vef,cuf;
+  record OTVc OTr;
+  
+  BlockLoad(CrObjr);
+  if (CrObjr.Enable!=0 and (CUr.CUType==1 or CUr.VEType==1)) then begin//p‚rbauda vai iesl•gta obj.veidoäana
+    if (CUr.CUType==1) then begin//piesaista klienta prefiksu
+      ObjCodeCu = CrObjr.ObjCust & CUr.Code;
+    end;
+    if (CUr.VEType==1) then begin//piesaista pieg‚d‚t‚ja prefiksu
+      ObjCodeVe = CrObjr.ObjVen & CUr.Code;
+    end;
+
+    //herbe-533; edz:
+    if (nonblank(ObjCodeCu)) then begin
+      cuf = true;
+      OTr.Code = CrObjr.ObjTyp;
+      if (ReadFirstMain(OTr,1,true)) then begin
+        if (nonblank(OTr.Start)) then begin
+          if (left(ObjCodeCu,(len(OTr.Start)))!=OTr.Start) then begin
+            cuf = false;
+          end;
+        end;
+        if (OTr.Length>0) then begin
+          if (len(ObjCodeCu)!=OTr.Length) then begin
+            cuf = false;
+          end;
+        end;
+      end else begin
+        cuf = false;
+      end;
+    end;
+    if (nonblank(ObjCodeVe)) then begin
+      vef = true;
+      OTr.Code = CrObjr.ObjTyp;
+      if (ReadFirstMain(OTr,1,true)) then begin
+        if (nonblank(OTr.Start)) then begin
+          if (left(ObjCodeVe,(len(OTr.Start)))!=OTr.Start) then begin
+            vef = false;
+          end;
+        end;
+        if (OTr.Length>0) then begin
+          if (len(ObjCodeVe)!=OTr.Length) then begin
+            vef = false;
+          end;
+        end;
+      end else begin
+        vef = false;
+      end;
+    end;
+    //:edz
+
+    if (cuf) then begin
+      if (nonblank(CUr.Objects)) then begin
+        if (!SetInSet(ObjCodeCu,CUr.Objects)) then begin//ja jauns-pieliek rind‚
+          CUr.Objects = CUr.Objects & "," & ObjCodeCu;
+        end;
+      end else begin
+        CUr.Objects = ObjCodeCu;
+      end;   
+      if (NonBlank(CUr.Objects)) then begin//pieliek klienta objektu
+        Objr.Code = ObjCodeCu;//check vai t‚ds jau neeksist•
+        if (ReadFirstMain(Objr,1,true)==false) then begin
+          RecordNew(Objr);
+          Objr.Code = ObjCodeCu;
+          Objr.Comment = CUr.Name;
+          Objr.OTCode = CrObjr.ObjTyp;
+          Objr.AutoObjects = CrObjr.AutoObjectCust;//opt-31; edz
+          if (RecordStore(Objr,true)) then begin end;
+        end;
+      end;
+    end;
+    
+    if (vef) then begin
+      if (nonblank(CUr.VEObjects)) then begin
+        if (!SetInSet(ObjCodeVe,CUr.VEObjects)) then begin
+          CUr.VEObjects = CUr.VEObjects & "," & ObjCodeVe;
+        end;
+      end else begin
+        CUr.VEObjects = ObjCodeVe;
+      end; 
+      if (NonBlank(CUr.VEObjects)) then begin//pieliek pieg‚d‚t‚ja objektu
+        Objr.Code = ObjCodeVe;//check vai t‚ds jau neeksist•
+        if (ReadFirstMain(Objr,1,true)==false) then begin    
+          RecordNew(Objr);
+          Objr.Code = ObjCodeVe;
+          Objr.Comment = CUr.Name;
+          Objr.OTCode = CrObjr.ObjTyp;
+          Objr.AutoObjects = CrObjr.AutoObjectCust;//opt-31; edz
+          if (RecordStore(Objr,true)) then begin end;
+        end;
+      end;
+    end;
+    
+  end;
+  return;
+end;
+
+global updating
+function LongInt CUVcRecordSave(var record CUVc CUr,record CUVc CU2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+
+  if (nonblankdate(CUr.BirthDate)) then begin
+    CUr.Birthday = DateToString(CUr.BirthDate,"MM/DD");
+  end;
+
+  res = inner.CUVcRecordSave(CUr,CU2r,stat,long4);
+  
+  CheckAndCreateCUObject(CUr);
+ 
+  CUVcRecordSave = res;
+  return;
+end;
+
+global updating
+function LongInt CUVcRecordUpdate(var record CUVc CUr,record CUVc CU2r,LongInt stat,LongInt long4)
+begin
+  LongInt res;
+  record CrObjBlock CrObjr;
+  
+  BlockLoad(CrObjr);
+  
+  res = inner.CUVcRecordUpdate(CUr,CU2r,stat,long4);
+  
+  if (CrObjr.Update!=0) then begin
+    CheckAndCreateCUObject(CUr);
+  end;
+ 
+  CUVcRecordUpdate = res;
+  return;
+end;

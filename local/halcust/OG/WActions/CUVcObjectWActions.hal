@@ -1,0 +1,140 @@
+remote function integer CrObjTClassObjTypEFAfterRemote(record CrObjBlock);
+remote function integer CrObjTClassUserObjTypEFAfterRemote(record CrObjBlock);
+
+function Boolean CrObjTClassObjVenEFAfter(Integer wn,Boolean changedf,integer typ)
+begin
+  record CrObjBlock CrObjb;
+  record OTVc OTr;
+  boolean res;
+
+  res = true;
+  if (changedf) then begin
+    GetWindowRecord(wn,CrObjb);
+    if (nonblank(CrObjb.ObjTyp)) then begin
+      OTr.Code = CrObjb.ObjTyp;
+      if (typ==3) then begin
+        OTr.Code = CrObjb.UserObjTyp;
+      end;
+      if (ReadFirstMain(OTr,1,true)) then begin
+        if (nonblank(OTr.Start)) then begin
+          switch (typ) begin
+            case 1:
+              if (left(CrObjb.ObjVen,(len(OTr.Start)))!=OTr.Start) then begin
+                res = false;
+                CrObjb.ObjVen = "";
+                PutWindowRecord(wn,CrObjb);
+                messagebox(102000,"");
+              end;
+            case 2:
+              if (left(CrObjb.ObjCust,(len(OTr.Start)))!=OTr.Start) then begin
+                res = false;
+                CrObjb.ObjCust = "";
+                PutWindowRecord(wn,CrObjb);
+                messagebox(102000,"");
+              end;
+            case 3:
+              if (left(CrObjb.ObjUser,(len(OTr.Start)))!=OTr.Start) then begin
+                res = false;
+                CrObjb.ObjUser = "";
+                PutWindowRecord(wn,CrObjb);
+                messagebox(102000,"");
+              end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  
+  CrObjTClassObjVenEFAfter = res;
+  return;
+end;
+
+function Boolean CrObjTClassObjTypEFAfter(Integer wn,Integer fn, Integer rownr,Integer changed)
+begin
+  boolean res,testf;
+  record CrObjBlock CrObjr;
+  record OTVc OTr;
+
+  res = true;
+  if (changed!=0) then begin
+    GetWindowRecord(wn,CrObjr);
+    if (CrObjTClassObjTypEFAfterRemote(CrObjr)!=0) then begin
+      beep;
+    end;
+    PutWindowRecord(wn,CrObjr);
+  end;
+  CrObjTClassObjTypEFAfter = res;
+  return;
+end;
+
+function Boolean CrObjTClassUserObjTypEFAfter(Integer wn,Integer fn, Integer rownr,Integer changed)
+begin
+  boolean res,testf;
+  record CrObjBlock CrObjr;
+
+  res = true;
+  if (changed!=0) then begin
+    GetWindowRecord(wn,CrObjr);
+    if (CrObjTClassUserObjTypEFAfterRemote(CrObjr)!=0) then begin
+      beep;
+    end;
+    PutWindowRecord(wn,CrObjr);
+  end;
+  CrObjTClassUserObjTypEFAfter = res;
+  return;
+end;
+
+global
+function boolean CrObjTClassAfterEditField(Integer wn,string fieldname,Integer fn, Integer rownr,Integer changed)
+begin
+  boolean res;
+  record CrObjBlock CrObjb;
+
+  switch (fieldname) begin
+    case "ObjVen": res = CrObjTClassObjVenEFAfter(wn,changed,1);
+    case "ObjCust": res = CrObjTClassObjVenEFAfter(wn,changed,2);
+    case "ObjTyp": res = CrObjTClassObjTypEFAfter(wn,fn,rownr,changed);
+    case "ObjUser": res = CrObjTClassObjVenEFAfter(wn,changed,3);
+    case "UserObjTyp": res = CrObjTClassUserObjTypEFAfter(wn,fn,rownr,changed);
+  end;
+  CrObjTClassAfterEditField = res;
+  return;
+end;
+
+global
+function Boolean CrObjTClassEnableButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record CrObjBlock CrObjr;
+  integer normalmode,updatemode;
+  
+  res = true;  
+  GetWindowRecord(wn,CrObjr);
+  if (CrObjr.Enable==0) then begin
+    if (blank(CrObjr.ObjTyp)) then begin
+      beep;
+      res = false;
+    end;
+  end;
+  CrObjTClassEnableButtonAction = res;
+  return;
+end;
+
+global
+function Boolean CrObjTClassUpdateButtonAction(Integer wn,Integer value)
+begin
+  Boolean res;
+  record CrObjBlock CrObjr;
+  integer normalmode,updatemode;
+  
+  res = true;  
+  GetWindowRecord(wn,CrObjr);
+  if (CrObjr.Update==0) then begin
+    if (blank(CrObjr.ObjTyp)) then begin
+      beep;
+      res = false;
+    end;
+  end;
+  CrObjTClassUpdateButtonAction = res;
+  return;
+end;
