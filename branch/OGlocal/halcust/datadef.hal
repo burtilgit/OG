@@ -1,6 +1,0 @@
-Exec_File("halcust/datadefOG.hal");
-
-begin
-
-  return;
-end;
