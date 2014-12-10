@@ -1,0 +1,43 @@
+event DefineWindows
+begin
+	real h,vs,v;
+	
+  SetLangMode(LangLatvian,"LAT",0);
+
+  WindowBegin("Burti - Objektu veidoäanas parametri",CrObjTClass,CGSbl,-);
+  SetWRect(64,80,500,600);
+  SetBlid(CrObjBlock);
+  v = 5; vs = 20; h = 160;
+  StaticText(h,v+=vs,"Kontakti",false);
+  EditField(h,v,h,"Pieg‚d‚t‚ja objekta prefikss",Normal,ObjVen,false,0);
+  EditField(h,v+=vs,h,"Klienta objekta prefikss",Normal,ObjCust,false,0);
+  EditField(h,v+=vs,h,"Piesaist‚mais objektu tips",Normal,ObjTyp,false,OTSClass);
+  EditField(h,v+=vs,h,"Hierarhijas objekts",Normal,AutoObjectCust,false,ObjSClass);//opt-31; edz
+  StaticText(h,v+=2*vs,"Personas",false);
+  EditField(h,v,h,"Personas objekta prefikss",Normal,ObjUser,false,0);
+  EditField(h,v+=vs,h,"Piesaist‚mais objektu tips",Normal,UserObjTyp,false,OTSClass);
+  CheckBox(h,v+=vs+vs/2,h,"Veidot objektus autom‚tiski",Enable);
+  CheckBox(h,v+=16,h,"Veidot objektus jau saglab‚tiem ierakstiem",Update);
+  EndWindow;
+  
+  WindowBegin("Burti - P‚r®ener•t neeksist•joäus objektus Kontaktu re®istr‚",GenMissingObjCUVClass,CGMnt,RcType);
+  SetWRect(20,80,525,235);
+  EditFieldTL(h=100,v=6, 150,"Kontakti (a:b)",M4UStr,Normal,120,f1,false,ContactCUSClass);
+  ButtonFrame(h-=50,v+=40,323,2,"Darb´bas veids");
+  RadioButton(h-=50,v,0,0,"þener•t jaunus objektus",ArtMode);
+  CheckBox(h+110,v,0,"Dz•st jau ievad´tos",flags[1]);
+  RadioButton(h-=50,v+=16,1,0,"Izveidot jau ievad´tos objektus",ArtMode);
+  EndWindow;
+  
+  //VITO: HERBE-490
+  WindowBegin("Burti - P‚r®ener•t objektus (Realiz‚cija/Pieg‚d‚t‚ji)",GenSLandPLObjsVClass,CGMnt,RcType);
+  SetWRect(20,80,480,235);
+  PeriodField(h=100,v=6,"Periods");
+  ButtonFrame(h-=50,v+=40,323,2,"Modulis");
+  RadioButton(h-=50,v,0,0,"Realiz‚cija (R•úini un Maks‚jumi)",ArtMode);
+  RadioButton(h-=50,v+=16,1,0,"Pieg‚d‚t‚ji (Ien‚koäie r•úini un Maks‚jumu uzdevumi)",ArtMode);
+  EndWindow;
+  //:VITO
+  
+  return;
+end;
