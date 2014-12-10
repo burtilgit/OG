@@ -13,6 +13,8 @@ begin
   EditField(h,v+=vs,h,"Klienta objekta prefikss",Normal,ObjCust,false,0);
   EditField(h,v+=vs,h,"Piesaist‚mais objektu tips",Normal,ObjTyp,false,OTSClass);
   EditField(h,v+=vs,h,"Hierarhijas objekts",Normal,AutoObjectCust,false,ObjSClass);//opt-31; edz
+  EditField(h,v+=vs,h,"Jauns objekts",Normal,ObjNew,false,ObjSClass);//OG-7
+  EditField(h,v+=vs,h,"Izlaist objekts",Normal,SkipObj,false,ObjSClass);//OG-8
   StaticText(h,v+=2*vs,"Personas",false);
   EditField(h,v,h,"Personas objekta prefikss",Normal,ObjUser,false,0);
   EditField(h,v+=vs,h,"Piesaist‚mais objektu tips",Normal,UserObjTyp,false,OTSClass);

@@ -42,6 +42,7 @@ begin
   record OTVc OTr;
   integer res;
   
+  skipobj = "";
   res = 0;
   if (NonBlank(CrObjr.UserObjTyp)) then begin
     Otr.Code = CrObjr.UserObjTyp;
