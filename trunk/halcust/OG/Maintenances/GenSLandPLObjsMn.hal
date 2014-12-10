@@ -1,0 +1,248 @@
+//auth VITO: HERBE-490
+external inner function Boolean ObjectTypeMatch(string,string);
+external inner procedure ExtractObj(string,var Integer,var string);
+
+procedure GetObjectFromCU(record CrObjBlock CrObjb,string cucode,var string object,integer mode)
+begin
+  record CUVc CUr;
+  string 20 cuobj,veobj,obj;
+  integer pos;
+  boolean findobjf;
+  
+  
+  object = "";
+  findobjf = false;
+  CUr.Code = cucode;
+  if (ReadFirstMain(CUr,1,true)) then begin
+    pos = 0;
+    
+    //cust
+    if (mode == 0) then begin
+      ExtractObj(CUr.Objects,pos,obj);
+      while (NonBlank(obj)) begin
+        if (ObjectTypeMatch(obj,CrObjb.ObjTyp)) then begin
+          findobjf = true;
+          if (object == "") then begin
+            object = obj;
+          end else begin
+            object = object & "," & obj;
+          end;
+        end;
+        ExtractObj(CUr.Objects,pos,obj);
+      end;
+    end;
+    
+    //vend
+    if (mode == 1) then begin
+      ExtractObj(CUr.VEObjects,pos,obj);
+      while (NonBlank(obj)) begin
+        if (ObjectTypeMatch(obj,CrObjb.ObjTyp)) then begin
+          findobjf = true;
+          if (object == "") then begin
+            object = obj;
+          end else begin
+            object = object & "," & obj;
+          end;
+        end;
+        ExtractObj(CUr.VEObjects,pos,obj);
+      end;
+    end;
+    
+    if (findobjf == false) then begin
+      LogText(0,"CUVc - " & CUr.Code & " - Problems with objects!");
+    end;
+  
+  end; 
+
+  return;
+end;
+
+global
+updating procedure GenSLandPLObjsMn(record RcVc RepSpec)
+begin
+  record CUVc CUr,OldCUr;
+  record CrObjBlock CrObjb;
+  record ObjVc Objr;
+  
+  boolean TrHs,testf,changedf;
+  string 255 object;
+  integer rwcnt,i;
+  
+  record IVVc IVr,oldIVr;
+  record IPVc IPr,oldIPr;
+  row IPVc IPrw;
+  
+  record VIVc VIr,oldVIr;
+  record OPVc OPr,oldOPr;
+  row OPVc OPrw;
+  boolean custf,vendf;
+  
+  BlockLoad(CrObjb);
+  
+  if (CrObjb.Enable != 0 and NonBlank(CrObjb.ObjTyp)) then begin 
+  
+    //SalesLedger
+    if (RepSpec.ArtMode == 0) then begin
+    
+      IVr.InvDate = RepSpec.sStartDate;
+      TrHs = true;
+      while (LoopKey("InvDate",IVr,1,TrHs)) begin
+        testf = true;   
+	      if (IVr.InvDate > RepSpec.sEndDate) then begin
+	        TrHs = false;
+	        testf = false;
+	      end;
+	      if (IVr.Invalid == 1) then begin
+	        testf = false;
+	      end;
+	    
+	      if (testf) then begin
+	        RecordCopy(oldIVr,IVr);
+	        if (NonBlank(IVr.Objects)) then begin
+	          if (ObjectTypeMatch(IVr.Objects,CrObjb.ObjTyp) == false) then begin
+	            GetObjectFromCU(CrObjb,IVr.CustCode,object,RepSpec.ArtMode);
+	            if (object != "") then begin
+	              IVr.Objects = IVr.Objects & "," & object;
+	            end;
+	          end;
+	        end else begin
+	          GetObjectFromCU(CrObjb,IVr.CustCode,object,RepSpec.ArtMode);
+	          if (object != "") then begin
+	            IVr.Objects = object;
+	          end;
+	        end;
+	      
+	        if (object != "") then begin
+	          if (RecordUpdate(oldIVr,IVr,false) == 1) then begin end;
+	        end;
+	      
+	      end;//testf
+      end;//while
+    
+      IPr.TransDate = RepSpec.sStartDate;
+      TrHs = true;
+      while (LoopKey("TransDate",IPr,1,TrHs)) begin
+        if (IPr.TransDate > RepSpec.sEndDate) then begin
+          TrHs = false;
+        end;
+      
+        if (TrHs) then begin
+          changedf = false;
+          RecordCopy(oldIPr,IPr);
+          rwcnt = MatRowCnt(IPr);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(IPr,i,IPrw);
+            if (NonBlank(IPrw.CustCode)) then begin
+              if (NonBlank(IPrw.Objects)) then begin
+                if (ObjectTypeMatch(IPrw.Objects,CrObjb.ObjTyp) == false) then begin
+	                GetObjectFromCU(CrObjb,IPrw.CustCode,object,RepSpec.ArtMode);
+	                if (object != "") then begin
+	                  IPrw.Objects = IPrw.Objects & "," & object;
+	                end;
+	              end;
+              end else begin
+                GetObjectFromCU(CrObjb,IPrw.CustCode,object,RepSpec.ArtMode);
+                if (object != "") then begin
+                  IPrw.Objects = object;
+                end;
+              end;
+            
+              if (object != "") then begin
+                MatRowPut(IPr,i,IPrw);
+                changedf = true;
+              end;
+            end;
+          end;//for
+          if (changedf) then begin
+            if (RecordUpdate(oldIPr,IPr,false) == 1) then begin end;
+          end;
+        end;//TrHs
+      end;//while  
+    
+    end;
+
+    //PurchaseLedger
+    if (RepSpec.ArtMode == 1) then begin
+      VIr.InvDate = RepSpec.sStartDate;
+      TrHs = true;
+      while (LoopKey("InvDate",VIr,1,TrHs)) begin
+        testf = true;   
+	      if (VIr.InvDate > RepSpec.sEndDate) then begin
+	        TrHs = false;
+	        testf = false;
+	      end;
+	      if (VIr.Invalid == 1) then begin
+	        testf = false;
+	      end;
+	    
+	      if (testf) then begin
+	        RecordCopy(oldVIr,VIr);
+	        if (NonBlank(VIr.Objects)) then begin
+	          if (ObjectTypeMatch(VIr.Objects,CrObjb.ObjTyp) == false) then begin
+	            GetObjectFromCU(CrObjb,VIr.VECode,object,RepSpec.ArtMode);
+	            if (object != "") then begin
+	              VIr.Objects = VIr.Objects & "," & object;
+	            end;
+	          end;
+	        end else begin
+	          GetObjectFromCU(CrObjb,VIr.VECode,object,RepSpec.ArtMode);
+	          if (object != "") then begin
+	            VIr.Objects = object;
+	          end;
+	        end;
+	      
+	        if (object != "") then begin
+	          if (RecordUpdate(oldVIr,VIr,false) == 1) then begin end;
+	        end;
+	      
+	      end;//testf
+      end;//while
+  
+      OPr.TransDate = RepSpec.sStartDate;
+      TrHs = true;
+      while (LoopKey("TransDate",OPr,1,TrHs)) begin
+        if (OPr.TransDate > RepSpec.sEndDate) then begin
+          TrHs = false;
+        end;
+      
+        if (TrHs) then begin
+          changedf = false;
+          RecordCopy(oldOPr,OPr);
+          rwcnt = MatRowCnt(OPr);
+          for (i=0;i<rwcnt;i=i+1) begin
+            MatRowGet(OPr,i,OPrw);
+            if (NonBlank(OPrw.VECode)) then begin
+              if (NonBlank(OPrw.Objects)) then begin
+                if (ObjectTypeMatch(OPrw.Objects,CrObjb.ObjTyp) == false) then begin
+	                GetObjectFromCU(CrObjb,OPrw.VECode,object,RepSpec.ArtMode);
+	                if (object != "") then begin
+	                  OPrw.Objects = OPrw.Objects & "," & object;
+	                end;
+	              end;
+              end else begin
+                GetObjectFromCU(CrObjb,OPrw.VECode,object,RepSpec.ArtMode);
+                if (object != "") then begin
+                  OPrw.Objects = object;
+                end;
+              end;
+            
+              if (object != "") then begin
+                MatRowPut(OPr,i,OPrw);
+                changedf = true;
+              end;
+            end;
+          end;//for
+          if (changedf) then begin
+            if (RecordUpdate(oldOPr,OPr,false) == 1) then begin end;
+          end;
+        end;//TrHs
+      end;//while 
+  
+    end;
+  
+  end else begin
+    Beep;
+  end;
+  
+  return;
+end;

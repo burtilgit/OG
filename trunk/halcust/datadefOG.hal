@@ -1,0 +1,22 @@
+// ui
+SourceFile("halcust/OG/Latvian",3);
+SourceFile("halcust/OG/Maintenances",3);
+SourceFile("halcust/OG/RActions",3);
+SourceFile("halcust/OG/Tools",3);
+SourceFile("halcust/OG/WActions",3);
+
+begin
+
+  BlockBegin(CrObjBlock,-,"");
+  RecordField(ObjCust,M4Code,20,0);
+  RecordField(ObjVen,M4Code,20,0);
+  RecordField(ObjTyp,M4Code,10,0);
+  RecordField(Enable,M4Int,0,0);
+  RecordField(Update,M4Int,0,0);
+  RecordField(ObjUser,M4Code,20,0);
+  RecordField(UserObjTyp,M4Code,10,0);
+  RecordField(AutoObjectCust,M4Code,20,ObjVc);//opt-31; edz
+  EndBlock;
+  
+  return;
+end;
