@@ -1,0 +1,8 @@
+event startup
+begin
+
+  SetLangMode(LangLatvian,"LAT",0);
+
+  SString(102000,"Nesakr´t ar objekta tip‚ defin•to s‚kumu");
+  
+end;
