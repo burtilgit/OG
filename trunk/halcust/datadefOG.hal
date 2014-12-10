@@ -17,6 +17,7 @@ begin
   RecordField(UserObjTyp,M4Code,10,0);
   RecordField(AutoObjectCust,M4Code,20,ObjVc);//opt-31; edz
   RecordField(ObjNew,M4Code,20,ObjVc);//OG-7
+  RecordField(SkipObj,M4Code,20,ObjVc);//OG-8
   EndBlock;
   
   return;
