@@ -3,6 +3,7 @@
 //OG-5 comment
 //OG-6 comment
 //OG-9 comment
+//OG-10 comment
 Exec_File("halcust/datadefOG.hal");
 
 begin
