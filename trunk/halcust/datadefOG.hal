@@ -4,7 +4,7 @@ SourceFile("halcust/OG/Maintenances",3);
 SourceFile("halcust/OG/RActions",3);
 SourceFile("halcust/OG/Tools",3);
 SourceFile("halcust/OG/WActions",3);
-
+//og-17
 begin
 
   BlockBegin(CrObjBlock,-,"");
